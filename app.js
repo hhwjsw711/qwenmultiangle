@@ -7,66 +7,10 @@ const CONFIG = {
     MAX_SEED: 2147483647
 };
 
-// ===== Camera Angle Mappings (for prompt generation) =====
-// Based on https://huggingface.co/fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA
+// ===== Camera Angle Labels (for UI display only) =====
+// Based on fal.ai API documentation
 
-const AZIMUTH_PROMPTS = {
-    0: 'front view',
-    45: 'front-right quarter view',
-    90: 'right side view',
-    135: 'back-right quarter view',
-    180: 'back view',
-    225: 'back-left quarter view',
-    270: 'left side view',
-    315: 'front-left quarter view'
-};
-
-const ELEVATION_PROMPTS = {
-    '-30': 'low-angle shot',
-    '0': 'eye-level shot',
-    '30': 'elevated shot',
-    '60': 'high-angle shot'
-};
-
-const DISTANCE_PROMPTS = {
-    '0.6': 'close-up',
-    '1.0': 'medium shot',
-    '1.8': 'wide shot'
-};
-
-// Map continuous values to discrete prompt values
-function getAzimuthPrompt(deg) {
-    deg = ((deg % 360) + 360) % 360;
-    const snapped = snapToNearest(deg, [0, 45, 90, 135, 180, 225, 270, 315]);
-    return AZIMUTH_PROMPTS[snapped] || 'front view';
-}
-
-function getElevationPrompt(deg) {
-    // Map 0-90 range to -30, 0, 30, 60
-    let mapped;
-    if (deg <= 10) mapped = -30;        // 0-10 -> low-angle
-    else if (deg <= 40) mapped = 0;     // 11-40 -> eye-level
-    else if (deg <= 70) mapped = 30;    // 41-70 -> elevated
-    else mapped = 60;                    // 71-90 -> high-angle
-    return ELEVATION_PROMPTS[String(mapped)] || 'eye-level shot';
-}
-
-function getDistancePrompt(val) {
-    // Map 1-10 range to 0.6, 1.0, 1.8
-    if (val <= 3) return 'close-up';
-    if (val <= 7) return 'medium shot';
-    return 'wide shot';
-}
-
-// Build the actual prompt for the API
-function buildPrompt(azimuth, elevation, distance) {
-    const az = getAzimuthPrompt(azimuth);
-    const el = getElevationPrompt(elevation);
-    const dist = getDistancePrompt(distance);
-    return `<sks> ${az} ${el} ${dist}`;
-}
-
-// For display in UI
+// horizontal_angle: 0-360 (0=front, 90=right, 180=back, 270=left)
 function getAzimuthLabel(deg) {
     deg = ((deg % 360) + 360) % 360;
     if (deg <= 22.5 || deg > 337.5) return 'Front';
@@ -79,24 +23,11 @@ function getAzimuthLabel(deg) {
     return 'Front-Left';
 }
 
-function getElevationLabel(deg) {
-    if (deg <= 10) return 'Low Angle';
-    if (deg <= 40) return 'Eye Level';
-    if (deg <= 70) return 'Elevated';
-    return 'High Angle';
-}
-
-function getDistanceLabel(val) {
-    if (val <= 3) return 'Close-up';
-    if (val <= 7) return 'Medium';
-    return 'Wide';
-}
-
 // ===== State =====
 let state = {
-    azimuth: 0,       // 0-360
-    elevation: 0,     // 0-90
-    distance: 1,      // 1-10
+    azimuth: 0,       // horizontal_angle: 0-360 (0=front, 90=right, 180=back, 270=left)
+    elevation: 0,     // vertical_angle: -30 to 90 (-30=low-angle, 0=eye-level, 30=elevated, 60=high-angle, 90=bird's-eye)
+    distance: 5,      // zoom: 0-10 (0=far/wide, 5=medium, 10=close-up)
     uploadedImage: null,
     uploadedImageBase64: null,
     imageUrl: null,   // Direct URL (no upload needed)
@@ -115,15 +46,46 @@ function snapToNearest(value, options) {
 
 
 function updatePromptDisplay() {
-    // Show the actual prompt that will be sent to the API
-    const prompt = buildPrompt(state.azimuth, state.elevation, state.distance);
-    elements.promptDisplay.textContent = prompt;
+    // Show the numeric parameters that will be sent to the API
+    const azLabel = getAzimuthLabel(state.azimuth);
+    const elLabel = getElevationLabelFromAngle(state.elevation);
+    const zoomLabel = getZoomLabel(state.distance);
+    
+    elements.promptDisplay.innerHTML = `
+        <div class="param-display">
+            <span class="param-name">horizontal_angle:</span> <span class="param-value">${state.azimuth}°</span> <span class="param-label">(${azLabel})</span>
+        </div>
+        <div class="param-display">
+            <span class="param-name">vertical_angle:</span> <span class="param-value">${state.elevation}°</span> <span class="param-label">(${elLabel})</span>
+        </div>
+        <div class="param-display">
+            <span class="param-name">zoom:</span> <span class="param-value">${state.distance}</span> <span class="param-label">(${zoomLabel})</span>
+        </div>
+    `;
+}
+
+// Get elevation label from actual angle (-30 to 90)
+function getElevationLabelFromAngle(deg) {
+    if (deg <= -15) return 'Low-angle (looking up)';
+    if (deg <= 15) return 'Eye-level';
+    if (deg <= 45) return 'Elevated';
+    if (deg <= 75) return 'High-angle';
+    return 'Bird\'s-eye (looking down)';
+}
+
+// Get zoom label (0-10)
+function getZoomLabel(val) {
+    if (val <= 2) return 'Wide shot (far)';
+    if (val <= 4) return 'Medium-wide';
+    if (val <= 6) return 'Medium shot';
+    if (val <= 8) return 'Medium close-up';
+    return 'Close-up (very close)';
 }
 
 function updateSliderValues() {
     elements.azimuthValue.textContent = `${Math.round(state.azimuth)}°`;
     elements.elevationValue.textContent = `${Math.round(state.elevation)}°`;
-    elements.distanceValue.textContent = Math.round(state.distance);
+    elements.distanceValue.textContent = state.distance.toFixed(1);
 }
 
 function updateGenerateButton() {
@@ -577,7 +539,8 @@ function initThreeJS() {
                 const dy = intersect.y - CENTER.y;
                 const dxz = Math.sqrt((intersect.x - CENTER.x) ** 2 + (intersect.z - CENTER.z) ** 2);
                 let angle = Math.atan2(dy, dxz) * (180 / Math.PI);
-                angle = Math.max(0, Math.min(90, angle));
+                // vertical_angle: -30 to 90 per fal.ai API
+                angle = Math.max(-30, Math.min(90, angle));
                 liveElevation = angle;
                 state.elevation = Math.round(liveElevation);
                 elements.elevationSlider.value = state.elevation;
@@ -586,10 +549,10 @@ function initThreeJS() {
                 updateVisuals();
             }
         } else if (dragTarget === 'distance') {
-            // Map mouse Y to distance (1-10)
-            const newDist = Math.round(5.5 - mouse.y * 4.5);
-            liveDistance = Math.max(1, Math.min(10, newDist));
-            state.distance = liveDistance;
+            // Map mouse Y to zoom (0-10) per fal.ai API
+            const newDist = 5 - mouse.y * 5;
+            liveDistance = Math.max(0, Math.min(10, newDist));
+            state.distance = Math.round(liveDistance * 10) / 10; // Round to 1 decimal
             elements.distanceSlider.value = state.distance;
             updateSliderValues();
             updatePromptDisplay();
@@ -942,8 +905,7 @@ async function generateImage() {
     
     addLog(`Configuring fal client...`, 'info');
     addLog(`Model: ${CONFIG.FAL_MODEL_ID}`, 'info');
-    addLog(`Camera: Azimuth=${state.azimuth}°, Elevation=${state.elevation}°, Distance=${state.distance}`, 'info');
-    addLog(`Will generate prompt: ${buildPrompt(state.azimuth, state.elevation, state.distance)}`, 'info');
+    addLog(`Camera: horizontal_angle=${state.azimuth}°, vertical_angle=${state.elevation}°, zoom=${state.distance}`, 'info');
     
     try {
         let imageUrl;
@@ -965,19 +927,15 @@ async function generateImage() {
         showStatus('Generating... This may take a moment.', 'info');
         addLog(`Starting model inference...`, 'request');
         
-        // Build the prompt in the LoRA's required format
-        const prompt = buildPrompt(state.azimuth, state.elevation, state.distance);
-        addLog(`Prompt: ${prompt}`, 'info');
-        
-        // fal.ai API parameter names (from working example)
+        // fal.ai API uses numeric parameters for camera control (NOT text prompt!)
+        // horizontal_angle: 0-360 (0=front, 90=right, 180=back, 270=left)
+        // vertical_angle: -30 to 90 (-30=low-angle, 0=eye-level, 30=elevated, 60=high-angle, 90=bird's-eye)
+        // zoom: 0-10 (0=wide/far, 5=medium, 10=close-up)
         const input = {
             image_urls: [imageUrl],
-            prompt: prompt,
             horizontal_angle: state.azimuth,
-            vertical_angle: state.elevation, 
-            zoom: state.distance,
-            num_inference_steps: 4,
-            guidance_scale: 1
+            vertical_angle: state.elevation,
+            zoom: state.distance
         };
         
         addLog(`Input: ${JSON.stringify(input, null, 2)}`, 'request');
@@ -1162,22 +1120,23 @@ function setupEventListeners() {
     });
     
     // Sliders - continuous values matching fal.ai ranges
+    // horizontal_angle: 0-360, vertical_angle: -30 to 90, zoom: 0-10
     elements.azimuthSlider.addEventListener('input', (e) => {
-        state.azimuth = parseInt(e.target.value);
+        state.azimuth = parseFloat(e.target.value);
         updateSliderValues();
         updatePromptDisplay();
         if (threeScene) threeScene.syncFromSliders();
     });
     
     elements.elevationSlider.addEventListener('input', (e) => {
-        state.elevation = parseInt(e.target.value);
+        state.elevation = parseFloat(e.target.value);
         updateSliderValues();
         updatePromptDisplay();
         if (threeScene) threeScene.syncFromSliders();
     });
     
     elements.distanceSlider.addEventListener('input', (e) => {
-        state.distance = parseInt(e.target.value);
+        state.distance = parseFloat(e.target.value);
         updateSliderValues();
         updatePromptDisplay();
         if (threeScene) threeScene.syncFromSliders();

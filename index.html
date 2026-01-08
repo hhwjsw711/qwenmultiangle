@@ -94,36 +94,36 @@
 
                     <div class="slider-group">
                         <div class="slider-header">
-                            <label>Elevation (Vertical)</label>
+                            <label>Elevation (Vertical Angle)</label>
                             <span id="elevation-value" class="slider-value">0°</span>
                         </div>
-                        <input type="range" id="elevation-slider" min="0" max="90" step="1" value="0">
+                        <input type="range" id="elevation-slider" min="-30" max="90" step="1" value="0">
                         <div class="slider-labels">
-                            <span>0°</span>
-                            <span>45°</span>
-                            <span>90°</span>
+                            <span>-30° (Low)</span>
+                            <span>0° (Eye)</span>
+                            <span>90° (Bird)</span>
                         </div>
                     </div>
 
                     <div class="slider-group">
                         <div class="slider-header">
-                            <label>Distance (Zoom)</label>
-                            <span id="distance-value" class="slider-value">1</span>
+                            <label>Zoom (Distance)</label>
+                            <span id="distance-value" class="slider-value">5</span>
                         </div>
-                        <input type="range" id="distance-slider" min="1" max="10" step="1" value="1">
+                        <input type="range" id="distance-slider" min="0" max="10" step="0.1" value="5">
                         <div class="slider-labels">
-                            <span>1</span>
-                            <span>5</span>
-                            <span>10</span>
+                            <span>0 (Wide)</span>
+                            <span>5 (Medium)</span>
+                            <span>10 (Close)</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Prompt Preview -->
+                <!-- API Parameters Preview -->
                 <div class="panel-card prompt-card">
-                    <h3 class="card-title">Generated Prompt</h3>
+                    <h3 class="card-title">API Parameters</h3>
                     <div class="prompt-display" id="prompt-display">
-                        &lt;sks&gt; front view low-angle shot close-up
+                        Loading...
                     </div>
                 </div>
 
