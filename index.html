@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen Multi-Angle Camera Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">⬡</span>
+                <span class="logo-text">Qwen Multi-Angle</span>
+            </div>
+            <div class="api-key-section">
+                <label for="api-key" class="api-label">fal.ai API Key <a href="https://fal.ai/dashboard/keys" target="_blank" class="get-key-link">(Get key)</a></label>
+                <div class="api-input-wrapper">
+                    <input 
+                        type="password" 
+                        id="api-key" 
+                        placeholder="Enter your API key..." 
+                        autocomplete="off"
+                    >
+                    <button id="toggle-key" class="toggle-key-btn" title="Show/Hide">
+                        <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+                <span class="api-key-hint">🔒 Stored only in your browser's local storage</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Left Panel: Upload & 3D Control -->
+            <section class="left-panel">
+                <!-- Image Upload -->
+                <div class="panel-card upload-card">
+                    <h3 class="card-title">Input Image</h3>
+                    <div class="upload-zone" id="upload-zone">
+                        <input type="file" id="image-input" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" hidden>
+                        <div class="upload-placeholder" id="upload-placeholder">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <p>Drop image here or click to upload</p>
+                        </div>
+                        <img id="preview-image" class="preview-image hidden" alt="Preview">
+                        <button id="clear-image" class="clear-btn hidden">×</button>
+                    </div>
+                    <div class="url-input-section">
+                        <div class="url-divider"><span>or paste URL</span></div>
+                        <div class="url-input-wrapper">
+                            <input type="text" id="image-url-input" placeholder="https://example.com/image.jpg" autocomplete="off">
+                            <button id="load-url-btn" class="load-url-btn">Load</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3D Camera Control -->
+                <div class="panel-card camera-card">
+                    <h3 class="card-title">3D Camera Control</h3>
+                    <p class="card-subtitle">Drag handles: <span class="handle-azimuth">●</span> Azimuth <span class="handle-elevation">●</span> Elevation <span class="handle-distance">●</span> Distance</p>
+                    <div id="threejs-container" class="threejs-container"></div>
+                </div>
+
+                <!-- Sliders -->
+                <div class="panel-card sliders-card">
+                    <h3 class="card-title">Manual Controls</h3>
+                    
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <label>Azimuth (Horizontal)</label>
+                            <span id="azimuth-value" class="slider-value">0°</span>
+                        </div>
+                        <input type="range" id="azimuth-slider" min="0" max="360" step="1" value="0">
+                        <div class="slider-labels">
+                            <span>0°</span>
+                            <span>90°</span>
+                            <span>180°</span>
+                            <span>270°</span>
+                            <span>360°</span>
+                        </div>
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <label>Elevation (Vertical)</label>
+                            <span id="elevation-value" class="slider-value">0°</span>
+                        </div>
+                        <input type="range" id="elevation-slider" min="0" max="90" step="1" value="0">
+                        <div class="slider-labels">
+                            <span>0°</span>
+                            <span>45°</span>
+                            <span>90°</span>
+                        </div>
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <label>Distance (Zoom)</label>
+                            <span id="distance-value" class="slider-value">1</span>
+                        </div>
+                        <input type="range" id="distance-slider" min="1" max="10" step="1" value="1">
+                        <div class="slider-labels">
+                            <span>1</span>
+                            <span>5</span>
+                            <span>10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prompt Preview -->
+                <div class="panel-card prompt-card">
+                    <h3 class="card-title">Generated Prompt</h3>
+                    <div class="prompt-display" id="prompt-display">
+                        &lt;sks&gt; front view low-angle shot close-up
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <button id="generate-btn" class="generate-btn" disabled>
+                    <span class="btn-text">Generate</span>
+                    <span class="btn-loader hidden">
+                        <svg class="spinner" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="31.4" stroke-dashoffset="10"/>
+                        </svg>
+                    </span>
+                </button>
+            </section>
+
+            <!-- Right Panel: Output -->
+            <section class="right-panel">
+                <div class="panel-card output-card">
+                    <h3 class="card-title">Output</h3>
+                    <div class="output-container" id="output-container">
+                        <div class="output-placeholder" id="output-placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                            <p>Generated image will appear here</p>
+                        </div>
+                        <img id="output-image" class="output-image hidden" alt="Output">
+                    </div>
+                    <button id="download-btn" class="download-btn hidden">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download
+                    </button>
+                </div>
+
+                <!-- Status/Error Display -->
+                <div id="status-message" class="status-message hidden"></div>
+
+                <!-- Logs Panel -->
+                <details class="logs-panel" open>
+                    <summary class="logs-header">
+                        <span>🔧 Debug Logs</span>
+                        <button id="clear-logs" class="clear-logs-btn">Clear</button>
+                    </summary>
+                    <div id="logs-container" class="logs-container">
+                        <div class="log-entry info">Ready. Waiting for API call...</div>
+                    </div>
+                </details>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by <a href="https://fal.ai/models/fal-ai/qwen-image-edit-2511-multiple-angles/" target="_blank">fal.ai</a></p>
+        </footer>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- fal.ai client -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
+
