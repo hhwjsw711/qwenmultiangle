@@ -255,15 +255,14 @@ function initThreeJS() {
     let liveDistance = state.distance;
     
     // ===== Subject (Image Plane) =====
-    const planeGeo = new THREE.PlaneGeometry(0.9, 0.9);
+    // Like original: just position at CENTER, no rotation (faces +Z by default)
+    const planeGeo = new THREE.PlaneGeometry(1.2, 1.2);
     const planeMat = new THREE.MeshBasicMaterial({ 
-        color: 0x2a2a3e,
+        color: 0x3a3a4a,
         side: THREE.DoubleSide
     });
     const imagePlane = new THREE.Mesh(planeGeo, planeMat);
     imagePlane.position.copy(CENTER);
-    // Face the camera
-    imagePlane.lookAt(camera.position);
     scene.add(imagePlane);
     
     // Add a visible border/frame
@@ -271,7 +270,6 @@ function initThreeJS() {
     const frameMat = new THREE.LineBasicMaterial({ color: 0xE93D82 });
     const imageFrame = new THREE.LineSegments(frameGeo, frameMat);
     imageFrame.position.copy(CENTER);
-    imageFrame.lookAt(camera.position);
     scene.add(imageFrame);
     
     // Glow ring around subject (on the ground plane)
@@ -689,16 +687,19 @@ function initThreeJS() {
                     planeMat.color.set(0xffffff);
                     planeMat.needsUpdate = true;
                     
-                    // Scale based on aspect ratio
+                    // Scale based on aspect ratio (like original)
                     const ar = img.width / img.height;
-                    const scaleX = ar > 1 ? 1.0 : 1.0 * ar;
-                    const scaleY = ar > 1 ? 1.0 / ar : 1.0;
+                    const maxSize = 1.5;
+                    let scaleX, scaleY;
+                    if (ar > 1) {
+                        scaleX = maxSize;
+                        scaleY = maxSize / ar;
+                    } else {
+                        scaleY = maxSize;
+                        scaleX = maxSize * ar;
+                    }
                     imagePlane.scale.set(scaleX, scaleY, 1);
                     imageFrame.scale.set(scaleX, scaleY, 1);
-                    
-                    // Re-orient to face camera
-                    imagePlane.lookAt(camera.position);
-                    imageFrame.lookAt(camera.position);
                     
                     console.log('3D scene: Texture applied successfully');
                 };
@@ -713,7 +714,7 @@ function initThreeJS() {
                 img.src = url;
             } else {
                 planeMat.map = null;
-                planeMat.color.set(0x2a2a3e);
+                planeMat.color.set(0x3a3a4a);
                 planeMat.needsUpdate = true;
                 imagePlane.scale.set(1, 1, 1);
                 imageFrame.scale.set(1, 1, 1);
