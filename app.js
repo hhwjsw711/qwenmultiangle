@@ -257,24 +257,34 @@ function initThreeJS() {
     // ===== Subject (Image Plane) =====
     const planeGeo = new THREE.PlaneGeometry(0.9, 0.9);
     const planeMat = new THREE.MeshBasicMaterial({ 
-        color: 0x1a1a2e,
+        color: 0x2a2a3e,
         side: THREE.DoubleSide
     });
     const imagePlane = new THREE.Mesh(planeGeo, planeMat);
     imagePlane.position.copy(CENTER);
+    // Face the camera
+    imagePlane.lookAt(camera.position);
     scene.add(imagePlane);
     
-    // Glow ring around subject
-    const glowRingGeo = new THREE.RingGeometry(0.5, 0.52, 64);
+    // Add a visible border/frame
+    const frameGeo = new THREE.EdgesGeometry(planeGeo);
+    const frameMat = new THREE.LineBasicMaterial({ color: 0xE93D82 });
+    const imageFrame = new THREE.LineSegments(frameGeo, frameMat);
+    imageFrame.position.copy(CENTER);
+    imageFrame.lookAt(camera.position);
+    scene.add(imageFrame);
+    
+    // Glow ring around subject (on the ground plane)
+    const glowRingGeo = new THREE.RingGeometry(0.55, 0.58, 64);
     const glowRingMat = new THREE.MeshBasicMaterial({ 
         color: 0xE93D82, 
         transparent: true, 
-        opacity: 0.3,
+        opacity: 0.4,
         side: THREE.DoubleSide
     });
     const glowRing = new THREE.Mesh(glowRingGeo, glowRingMat);
-    glowRing.position.copy(CENTER);
-    glowRing.position.z += 0.01;
+    glowRing.position.set(0, 0.01, 0); // On the ground
+    glowRing.rotation.x = -Math.PI / 2; // Flat on ground
     scene.add(glowRing);
     
     // ===== Camera Indicator - Stylish pyramid =====
@@ -333,12 +343,24 @@ function initThreeJS() {
     const azGlow = new THREE.Mesh(azGlowGeo, azGlowMat);
     scene.add(azGlow);
     
-    // ===== Elevation Arc - Thick and bright =====
-    const elArcGeo = new THREE.TorusGeometry(ELEVATION_RADIUS, 0.04, 16, 50, Math.PI / 2);
+    // ===== Elevation Arc - Built from curve points (like original) =====
+    // Fixed position at X = -0.8, arc goes from -30° to 90°
+    const ELEV_ARC_X = -0.8;
+    const arcPoints = [];
+    for (let i = 0; i <= 32; i++) {
+        const angle = (-30 + (120 * i / 32)) * Math.PI / 180; // -30° to 90°
+        arcPoints.push(new THREE.Vector3(
+            ELEV_ARC_X,
+            ELEVATION_RADIUS * Math.sin(angle) + CENTER.y,
+            ELEVATION_RADIUS * Math.cos(angle)
+        ));
+    }
+    const arcCurve = new THREE.CatmullRomCurve3(arcPoints);
+    const elArcGeo = new THREE.TubeGeometry(arcCurve, 32, 0.04, 8, false);
     const elArcMat = new THREE.MeshBasicMaterial({ 
         color: 0x00FFD0,
         transparent: true,
-        opacity: 0.7
+        opacity: 0.8
     });
     const elevationArc = new THREE.Mesh(elArcGeo, elArcMat);
     scene.add(elevationArc);
@@ -366,16 +388,26 @@ function initThreeJS() {
     scene.add(elGlow);
     
     // ===== Distance Handle - Golden orb =====
-    const distHandleGeo = new THREE.SphereGeometry(0.13, 32, 32);
+    const distHandleGeo = new THREE.SphereGeometry(0.15, 32, 32);
     const distHandleMat = new THREE.MeshStandardMaterial({ 
         color: 0xFFB800,
         emissive: 0xFFB800,
-        emissiveIntensity: 0.5,
+        emissiveIntensity: 0.7,
         metalness: 0.5,
         roughness: 0.3
     });
     const distanceHandle = new THREE.Mesh(distHandleGeo, distHandleMat);
     scene.add(distanceHandle);
+    
+    // Distance handle outer glow
+    const distGlowGeo = new THREE.SphereGeometry(0.22, 16, 16);
+    const distGlowMat = new THREE.MeshBasicMaterial({ 
+        color: 0xFFB800,
+        transparent: true,
+        opacity: 0.25
+    });
+    const distGlow = new THREE.Mesh(distGlowGeo, distGlowMat);
+    scene.add(distGlow);
     
     // Distance line - Thick glowing line (using tube)
     let distanceTube = null;
@@ -396,9 +428,10 @@ function initThreeJS() {
     function updateVisuals() {
         const azRad = (liveAzimuth * Math.PI) / 180;
         const elRad = (liveElevation * Math.PI) / 180;
-        // Zoom: 0=wide (far), 10=close-up (near) - invert for visual representation
+        // Zoom: 0=wide (far), 10=close-up (near)
+        // Make the movement MORE dramatic: 0.6 to 2.6 range
         // Higher zoom = camera closer to subject visually
-        const visualDist = 2.3 - (liveDistance / 10) * 1.5;
+        const visualDist = 2.6 - (liveDistance / 10) * 2.0;
         
         // Camera indicator
         const camX = visualDist * Math.sin(azRad) * Math.cos(elRad);
@@ -417,27 +450,25 @@ function initThreeJS() {
         azimuthHandle.position.set(azX, 0.16, azZ);
         azGlow.position.copy(azimuthHandle.position);
         
-        // Elevation arc - rotates with azimuth, starts from ground
-        elevationArc.position.copy(CENTER);
-        elevationArc.rotation.set(-Math.PI / 2, 0, -azRad + Math.PI / 2);
-        
-        // Elevation handle - on the arc
-        const elX = CENTER.x + ELEVATION_RADIUS * Math.sin(azRad) * Math.cos(elRad);
+        // Elevation arc is at fixed position (no rotation needed)
+        // Elevation handle - on the arc at current elevation (same formula as arc points)
         const elY = CENTER.y + ELEVATION_RADIUS * Math.sin(elRad);
-        const elZ = CENTER.z + ELEVATION_RADIUS * Math.cos(azRad) * Math.cos(elRad);
-        elevationHandle.position.set(elX, elY, elZ);
+        const elZ = ELEVATION_RADIUS * Math.cos(elRad);
+        elevationHandle.position.set(ELEV_ARC_X, elY, elZ);
         elGlow.position.copy(elevationHandle.position);
         
-        // Distance handle - between center and camera indicator
-        // Higher zoom = handle farther out (toward camera), lower zoom = handle closer to center
-        const distT = 0.3 + (liveDistance / 10) * 0.4;
+        // Distance handle - ON the golden line between center and camera
+        // Higher zoom (10) = closer to subject = handle closer to center
+        // Lower zoom (0) = farther from subject = handle closer to camera
+        const distT = 0.15 + ((10 - liveDistance) / 10) * 0.7;
         distanceHandle.position.lerpVectors(CENTER, cameraIndicator.position, distT);
+        distGlow.position.copy(distanceHandle.position);
         
-        // Distance line
+        // Distance line from center to camera
         updateDistanceLine(CENTER.clone(), cameraIndicator.position.clone());
         
-        // Animate glow ring
-        glowRing.rotation.z += 0.002;
+        // Animate glow ring (rotating on ground)
+        glowRing.rotation.z += 0.005;
     }
     
     updateVisuals();
@@ -467,7 +498,7 @@ function initThreeJS() {
         const handles = [
             { mesh: azimuthHandle, glow: azGlow, name: 'azimuth' },
             { mesh: elevationHandle, glow: elGlow, name: 'elevation' },
-            { mesh: distanceHandle, glow: null, name: 'distance' }
+            { mesh: distanceHandle, glow: distGlow, name: 'distance' }
         ];
         
         for (const h of handles) {
@@ -490,7 +521,7 @@ function initThreeJS() {
             const handles = [
                 { mesh: azimuthHandle, glow: azGlow, name: 'azimuth' },
                 { mesh: elevationHandle, glow: elGlow, name: 'elevation' },
-                { mesh: distanceHandle, glow: null, name: 'distance' }
+                { mesh: distanceHandle, glow: distGlow, name: 'distance' }
             ];
             
             let foundHover = null;
@@ -534,13 +565,12 @@ function initThreeJS() {
                 updateVisuals();
             }
         } else if (dragTarget === 'elevation') {
-            const azRad = (liveAzimuth * Math.PI) / 180;
-            const normal = new THREE.Vector3(-Math.cos(azRad), 0, Math.sin(azRad));
-            plane.setFromNormalAndCoplanarPoint(normal, CENTER);
-            if (raycaster.ray.intersectPlane(plane, intersect)) {
-                const dy = intersect.y - CENTER.y;
-                const dxz = Math.sqrt((intersect.x - CENTER.x) ** 2 + (intersect.z - CENTER.z) ** 2);
-                let angle = Math.atan2(dy, dxz) * (180 / Math.PI);
+            // Elevation arc is in the YZ plane at X = ELEV_ARC_X
+            const elevPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), -ELEV_ARC_X);
+            if (raycaster.ray.intersectPlane(elevPlane, intersect)) {
+                const relY = intersect.y - CENTER.y;
+                const relZ = intersect.z;
+                let angle = Math.atan2(relY, relZ) * (180 / Math.PI);
                 // vertical_angle: -30 to 90 per fal.ai API
                 angle = Math.max(-30, Math.min(90, angle));
                 liveElevation = angle;
@@ -570,7 +600,7 @@ function initThreeJS() {
             const handles = [
                 { mesh: azimuthHandle, glow: azGlow },
                 { mesh: elevationHandle, glow: elGlow },
-                { mesh: distanceHandle, glow: null }
+                { mesh: distanceHandle, glow: distGlow }
             ];
             handles.forEach(h => setHandleScale(h.mesh, h.glow, 1.0));
         }
@@ -641,23 +671,40 @@ function initThreeJS() {
         },
         updateImage: (url) => {
             if (url) {
+                console.log('3D scene: Loading image from:', url.substring(0, 50) + '...');
+                
                 // For base64 data URLs, load directly via Image element
                 const img = new Image();
-                img.crossOrigin = 'anonymous';
+                // Only set crossOrigin for non-data URLs
+                if (!url.startsWith('data:')) {
+                    img.crossOrigin = 'anonymous';
+                }
                 
                 img.onload = () => {
+                    console.log('3D scene: Image element loaded', img.width, 'x', img.height);
                     const tex = new THREE.Texture(img);
                     tex.needsUpdate = true;
+                    tex.colorSpace = THREE.SRGBColorSpace;
                     planeMat.map = tex;
                     planeMat.color.set(0xffffff);
                     planeMat.needsUpdate = true;
+                    
+                    // Scale based on aspect ratio
                     const ar = img.width / img.height;
-                    imagePlane.scale.set(ar > 1 ? 0.9 : 0.9 * ar, ar > 1 ? 0.9 / ar : 0.9, 1);
-                    console.log('3D scene: Image loaded successfully');
+                    const scaleX = ar > 1 ? 1.0 : 1.0 * ar;
+                    const scaleY = ar > 1 ? 1.0 / ar : 1.0;
+                    imagePlane.scale.set(scaleX, scaleY, 1);
+                    imageFrame.scale.set(scaleX, scaleY, 1);
+                    
+                    // Re-orient to face camera
+                    imagePlane.lookAt(camera.position);
+                    imageFrame.lookAt(camera.position);
+                    
+                    console.log('3D scene: Texture applied successfully');
                 };
                 
                 img.onerror = (err) => {
-                    console.warn('3D scene: Could not load image, showing placeholder', err);
+                    console.warn('3D scene: Could not load image', err);
                     planeMat.map = null;
                     planeMat.color.set(0xE93D82);
                     planeMat.needsUpdate = true;
@@ -666,9 +713,10 @@ function initThreeJS() {
                 img.src = url;
             } else {
                 planeMat.map = null;
-                planeMat.color.set(0x1a1a2e);
+                planeMat.color.set(0x2a2a3e);
                 planeMat.needsUpdate = true;
                 imagePlane.scale.set(1, 1, 1);
+                imageFrame.scale.set(1, 1, 1);
             }
         }
     };
