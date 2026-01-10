@@ -1,6 +1,29 @@
 // ===== Import fal client =====
 import { fal } from "https://esm.sh/@fal-ai/client@1.2.1";
 
+// ===== Initialize i18n and app when DOM is ready =====
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize i18n FIRST
+    if (window.i18n) {
+        window.i18n.init();
+
+        // Setup language selector change handler
+        const langSelector = document.getElementById('lang-selector');
+        if (langSelector) {
+            langSelector.addEventListener('change', (e) => {
+                window.i18n.setLanguage(e.target.value);
+                // Refresh UI text after language change
+                if (typeof updatePromptDisplay === 'function') updatePromptDisplay();
+                if (typeof updateSliderValues === 'function') updateSliderValues();
+                if (typeof updateWaypointsList === 'function') updateWaypointsList();
+            });
+        }
+    }
+
+    // Then initialize the app
+    init();
+});
+
 // ===== Configuration =====
 const CONFIG = {
     FAL_MODEL_ID: 'fal-ai/qwen-image-edit-2511-multiple-angles',
@@ -16,14 +39,14 @@ const CONFIG = {
 // horizontal_angle: 0-360 (0=front, 90=right, 180=back, 270=left)
 function getAzimuthLabel(deg) {
     deg = ((deg % 360) + 360) % 360;
-    if (deg <= 22.5 || deg > 337.5) return 'Front';
-    if (deg <= 67.5) return 'Front-Right';
-    if (deg <= 112.5) return 'Right';
-    if (deg <= 157.5) return 'Back-Right';
-    if (deg <= 202.5) return 'Back';
-    if (deg <= 247.5) return 'Back-Left';
-    if (deg <= 292.5) return 'Left';
-    return 'Front-Left';
+    if (deg <= 22.5 || deg > 337.5) return window.i18n?.t('angle.front') || 'Front';
+    if (deg <= 67.5) return window.i18n?.t('angle.frontRight') || 'Front-Right';
+    if (deg <= 112.5) return window.i18n?.t('angle.right') || 'Right';
+    if (deg <= 157.5) return window.i18n?.t('angle.backRight') || 'Back-Right';
+    if (deg <= 202.5) return window.i18n?.t('angle.back') || 'Back';
+    if (deg <= 247.5) return window.i18n?.t('angle.backLeft') || 'Back-Left';
+    if (deg <= 292.5) return window.i18n?.t('angle.left') || 'Left';
+    return window.i18n?.t('angle.frontLeft') || 'Front-Left';
 }
 
 // ===== State =====
@@ -124,7 +147,7 @@ function updatePromptDisplay() {
     const azLabel = getAzimuthLabel(state.azimuth);
     const elLabel = getElevationLabelFromAngle(state.elevation);
     const zoomLabel = getZoomLabel(state.distance);
-    
+
     elements.promptDisplay.innerHTML = `
         <div class="param-display">
             <span class="param-name">horizontal_angle:</span> <span class="param-value">${state.azimuth}°</span> <span class="param-label">(${azLabel})</span>
@@ -140,20 +163,20 @@ function updatePromptDisplay() {
 
 // Get elevation label from actual angle (-30 to 90)
 function getElevationLabelFromAngle(deg) {
-    if (deg <= -15) return 'Low-angle (looking up)';
-    if (deg <= 15) return 'Eye-level';
-    if (deg <= 45) return 'Elevated';
-    if (deg <= 75) return 'High-angle';
-    return 'Bird\'s-eye (looking down)';
+    if (deg <= -15) return window.i18n?.t('elevation.lowAngle') || 'Low-angle (looking up)';
+    if (deg <= 15) return window.i18n?.t('elevation.eyeLevel') || 'Eye-level';
+    if (deg <= 45) return window.i18n?.t('elevation.elevated') || 'Elevated';
+    if (deg <= 75) return window.i18n?.t('elevation.highAngle') || 'High-angle';
+    return window.i18n?.t('elevation.birdsEye') || 'Bird\'s-eye (looking down)';
 }
 
 // Get zoom label (0-10)
 function getZoomLabel(val) {
-    if (val <= 2) return 'Wide shot (far)';
-    if (val <= 4) return 'Medium-wide';
-    if (val <= 6) return 'Medium shot';
-    if (val <= 8) return 'Medium close-up';
-    return 'Close-up (very close)';
+    if (val <= 2) return window.i18n?.t('zoom.wideShot') || 'Wide shot (far)';
+    if (val <= 4) return window.i18n?.t('zoom.mediumWide') || 'Medium-wide';
+    if (val <= 6) return window.i18n?.t('zoom.mediumShot') || 'Medium shot';
+    if (val <= 8) return window.i18n?.t('zoom.mediumCloseUp') || 'Medium close-up';
+    return window.i18n?.t('zoom.closeUp') || 'Close-up (very close)';
 }
 
 function updateSliderValues() {
@@ -221,7 +244,7 @@ function addLog(message, type = 'info') {
 
 function clearLogs() {
     if (elements.logsContainer) {
-        elements.logsContainer.innerHTML = '<div class="log-entry info">Logs cleared.</div>';
+        elements.logsContainer.innerHTML = `<div class="log-entry info" data-i18n="log.logsCleared">${window.i18n.t('log.logsCleared')}</div>`;
     }
 }
 
@@ -262,10 +285,10 @@ function formatError(error) {
             if (jsonStr === '{}') return 'Empty error response';
             return jsonStr;
         } catch (e) {
-            return 'Error: Unable to parse error details';
+            return 'Unable to parse error details';
         }
     }
-    
+
     return String(error);
 }
 
@@ -881,51 +904,51 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 function validateImageFile(file) {
     if (!file) {
-        return { valid: false, error: 'No file provided' };
+        return { valid: false, error: window.i18n?.t('error.noFile') || 'No file provided' };
     }
-    
+
     // Check MIME type
     if (!file.type || !ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
-        return { valid: false, error: `Invalid file type: ${file.type || 'unknown'}. Allowed: JPG, PNG, WebP, GIF` };
+        return { valid: false, error: window.i18n?.t('error.invalidFileType', { type: file.type || 'unknown' }) || `Invalid file type: ${file.type || 'unknown'}. Allowed: JPG, PNG, WebP, GIF` };
     }
-    
+
     // Check file extension as backup
     const fileName = file.name.toLowerCase();
     const hasValidExtension = ALLOWED_EXTENSIONS.some(ext => fileName.endsWith(ext));
     if (!hasValidExtension) {
-        return { valid: false, error: `Invalid file extension. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}` };
+        return { valid: false, error: window.i18n?.t('error.invalidExtension', { extensions: ALLOWED_EXTENSIONS.join(', ') }) || `Invalid file extension. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}` };
     }
-    
+
     // Check file size
     if (file.size > MAX_FILE_SIZE) {
         const sizeMB = (file.size / 1024 / 1024).toFixed(1);
-        return { valid: false, error: `File too large: ${sizeMB}MB. Maximum: 20MB` };
+        return { valid: false, error: window.i18n?.t('error.fileTooLarge', { size: sizeMB }) || `File too large: ${sizeMB}MB. Maximum: 20MB` };
     }
-    
+
     return { valid: true };
 }
 
 function validateImageUrl(url) {
     if (!url || !url.trim()) {
-        return { valid: false, error: 'No URL provided' };
+        return { valid: false, error: window.i18n?.t('error.noUrl') || 'No URL provided' };
     }
-    
+
     url = url.trim();
-    
+
     // Check URL format
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        return { valid: false, error: 'URL must start with http:// or https://' };
+        return { valid: false, error: window.i18n?.t('error.invalidUrl') || 'URL must start with http:// or https://' };
     }
-    
+
     // Check for image extension (optional - some URLs don't have extensions)
     const urlLower = url.toLowerCase();
-    const looksLikeImage = ALLOWED_EXTENSIONS.some(ext => urlLower.includes(ext)) || 
-                          urlLower.includes('image') || 
+    const looksLikeImage = ALLOWED_EXTENSIONS.some(ext => urlLower.includes(ext)) ||
+                          urlLower.includes('image') ||
                           urlLower.includes('img') ||
                           urlLower.includes('photo');
-    
+
     // We'll allow it even without extension, as many image URLs don't have them
-    return { valid: true, warning: !looksLikeImage ? 'URL may not be an image' : null };
+    return { valid: true, warning: !looksLikeImage ? window.i18n?.t('error.urlMayNotBeImage') || 'URL may not be an image' : null };
 }
 
 function handleImageUpload(file) {
@@ -936,7 +959,7 @@ function handleImageUpload(file) {
         return;
     }
     
-    addLog(`Uploading image: ${file.name} (${(file.size / 1024).toFixed(1)} KB, ${file.type})`, 'info');
+    addLog(window.i18n.t('log.uploadingImage', { name: file.name, size: (file.size / 1024).toFixed(1), type: file.type }), 'info');
     
     // Clear any URL when uploading a file
     state.imageUrl = null;
@@ -960,7 +983,7 @@ function handleImageUpload(file) {
             threeScene.updateImage(e.target.result);
         }
         
-        addLog(`Image loaded successfully. Base64 size: ${(e.target.result.length / 1024).toFixed(1)} KB`, 'info');
+        addLog(window.i18n.t('log.imageLoaded', { size: (e.target.result.length / 1024).toFixed(1) }), 'info');
         
         updateGenerateButton();
         hideStatus();
@@ -1011,8 +1034,8 @@ function loadImageFromUrl(url) {
         addLog(`Warning: ${validation.warning}`, 'warn');
     }
     
-    addLog(`Loading image from URL: ${url}`, 'info');
-    showStatus('Loading image...', 'info');
+    addLog(window.i18n.t('status.loadingImage'), 'info');
+    showStatus(window.i18n.t('status.loadingImage'), 'info');
     
     // Clear any previously uploaded file
     state.uploadedImage = null;
@@ -1042,14 +1065,14 @@ function loadImageFromUrl(url) {
         elements.previewImage.src = url;
         elements.previewImage.classList.remove('hidden');
         elements.uploadPlaceholder.classList.add('hidden');
-        
-        addLog(`Image preview loaded successfully`, 'info');
+
+        addLog(window.i18n.t('log.imagePreviewLoaded'), 'info');
         hideStatus();
     };
-    
+
     img.onerror = () => {
         // Preview failed but URL is still set - show indicator
-        addLog(`Could not preview image (CORS/network), but URL is set for generation`, 'warn');
+        addLog(window.i18n.t('log.imagePreviewFailed'), 'warn');
         elements.previewImage.classList.add('hidden');
         elements.uploadPlaceholder.classList.remove('hidden');
         hideStatus();
@@ -1067,27 +1090,27 @@ function loadImageFromUrl(url) {
 async function generateImage() {
     const apiKey = elements.apiKey.value.trim();
     if (!apiKey) {
-        showStatus('Please enter your fal.ai API key', 'error');
-        addLog('Error: No API key provided', 'error');
+        showStatus(window.i18n.t('status.enterApiKey'), 'error');
+        addLog(window.i18n.t('log.error', { message: 'No API key provided' }), 'error');
         return;
     }
-    
+
     if (!state.uploadedImage && !state.imageUrl) {
-        showStatus('Please upload an image or provide a URL', 'error');
-        addLog('Error: No image provided', 'error');
+        showStatus(window.i18n.t('status.uploadImage'), 'error');
+        addLog(window.i18n.t('log.error', { message: 'No image provided' }), 'error');
         return;
     }
-    
+
     state.isGenerating = true;
     updateGenerateButton();
-    
+
     // Add loading UI states
     elements.generateBtn.classList.add('generating');
-    elements.generateBtn.querySelector('.btn-text').textContent = 'Generating...';
+    elements.generateBtn.querySelector('.btn-text').textContent = window.i18n.t('single.generating');
     elements.generateBtn.querySelector('.btn-loader').classList.remove('hidden');
     elements.outputContainer.classList.add('loading');
     elements.outputPlaceholder.classList.add('loading');
-    
+
     // Dynamic loading messages
     const loadingMessages = [
         'Processing image...',
@@ -1104,37 +1127,37 @@ async function generateImage() {
             clearInterval(loadingInterval);
         }
     }, 3000);
-    
+
     hideStatus();
-    
+
     // Configure fal client with API key
     fal.config({
         credentials: apiKey
     });
-    
-    addLog(`Configuring fal client...`, 'info');
-    addLog(`Model: ${CONFIG.FAL_MODEL_ID}`, 'info');
-    addLog(`Camera: horizontal_angle=${state.azimuth}°, vertical_angle=${state.elevation}°, zoom=${state.distance}`, 'info');
-    
+
+    addLog(window.i18n.t('log.configuringClient'), 'info');
+    addLog(window.i18n.t('log.model', { model: CONFIG.FAL_MODEL_ID }), 'info');
+    addLog(window.i18n.t('log.camera', { azimuth: state.azimuth, elevation: state.elevation, distance: state.distance }), 'info');
+
     try {
         let imageUrl;
-        
+
         // Use direct URL if provided, otherwise upload the file
         if (state.imageUrl) {
             imageUrl = state.imageUrl;
-            addLog(`Using provided URL: ${imageUrl}`, 'info');
+            addLog(window.i18n.t('log.usingUrl', { url: imageUrl }), 'info');
         } else {
             // Upload the image to fal storage
-            showStatus('Uploading image...', 'info');
-            addLog(`Uploading image to fal storage...`, 'request');
-            
+            showStatus(window.i18n.t('status.loadingImage'), 'info');
+            addLog(window.i18n.t('log.uploadingToStorage'), 'request');
+
             imageUrl = await fal.storage.upload(state.uploadedImage);
-            addLog(`Image uploaded: ${imageUrl}`, 'response');
+            addLog(window.i18n.t('log.imageUploaded', { url: imageUrl }), 'response');
         }
         
         // Now run the model
-        showStatus('Generating... This may take a moment.', 'info');
-        addLog(`Starting model inference...`, 'request');
+        showStatus(window.i18n.t('single.generating'), 'info');
+        addLog(window.i18n.t('log.startingInference'), 'request');
         
         // fal.ai API uses numeric parameters for camera control (NOT text prompt!)
         // horizontal_angle: 0-360 (0=front, 90=right, 180=back, 270=left)
@@ -1153,7 +1176,7 @@ async function generateImage() {
             input: input
         });
         
-        addLog(`Result received!`, 'response');
+        addLog(window.i18n.t('log.resultReceived'), 'response');
         
         // Log the result structure
         try {
@@ -1193,12 +1216,12 @@ async function generateImage() {
             }, 600);
             
             addLog(`Success! Image URL: ${outputImageUrl.substring(0, 80)}...`, 'info');
-            showStatus('Image generated successfully!', 'success');
+            showStatus(window.i18n.t('status.imageGenerated'), 'success');
         }
         
         // Fallback: try to find any fal.media URL in the result
         if (!outputImageUrl) {
-            addLog('Trying regex fallback...', 'warn');
+            addLog(window.i18n.t('log.error', {message: 'Trying regex fallback'}), 'warn');
             const resultStr = JSON.stringify(result);
             const urlMatch = resultStr.match(/https:\/\/[^"]*fal\.media[^"]*/);
             if (urlMatch) {
@@ -1206,23 +1229,23 @@ async function generateImage() {
                 addLog(`Found URL via regex: ${outputImageUrl}`, 'warn');
             }
         }
-        
+
         if (!outputImageUrl) {
             addLog('Error: Could not extract image URL from response', 'error');
-            throw new Error('No image in response. Check logs for details.');
+            throw new Error(window.i18n.t('error.noImageInResponse'));
         }
-        
+
     } catch (error) {
         console.error('Generation error:', error);
         let errorMsg;
         
         // Handle specific error types
         if (error.message && error.message.includes('fetch')) {
-            errorMsg = 'Network error - check your internet connection';
+            errorMsg = window.i18n.t('error.networkError');
         } else if (error.status === 401 || error.message?.includes('401')) {
-            errorMsg = 'Invalid API key. Please check your fal.ai API key.';
+            errorMsg = window.i18n.t('error.invalidApiKey');
         } else if (error.status === 422 || error.message?.includes('422')) {
-            errorMsg = 'Invalid request format. Check the logs for details.';
+            errorMsg = window.i18n.t('error.invalidRequest');
         } else if (error.body) {
             errorMsg = formatError(error.body);
         } else {
@@ -1240,7 +1263,7 @@ async function generateImage() {
         
         // Remove loading UI states
         elements.generateBtn.classList.remove('generating');
-        elements.generateBtn.querySelector('.btn-text').textContent = 'Generate';
+        elements.generateBtn.querySelector('.btn-text').textContent = window.i18n.t('single.generate');
         elements.generateBtn.querySelector('.btn-loader').classList.add('hidden');
         elements.outputContainer.classList.remove('loading');
         elements.outputPlaceholder.classList.remove('loading');
@@ -1426,7 +1449,7 @@ function syncPathImageFromSingleAngle() {
         if (pathElements.uploadZone) pathElements.uploadZone.classList.add('has-image');
 
         if (pathThreeScene) pathThreeScene.updateImage(state.imageUrl);
-        addPathLog('Synced image from Single Angle tab (URL)', 'info');
+        addPathLog(window.i18n.t('log.syncedImageUrl'), 'info');
         return;
     }
 
@@ -1446,7 +1469,7 @@ function syncPathImageFromSingleAngle() {
         if (pathElements.uploadZone) pathElements.uploadZone.classList.add('has-image');
 
         if (pathThreeScene) pathThreeScene.updateImage(state.uploadedImageBase64);
-        addPathLog('Synced image from Single Angle tab (uploaded file)', 'info');
+        addPathLog(window.i18n.t('log.syncedImageFile'), 'info');
     }
 }
 
@@ -1498,7 +1521,7 @@ function initPathThreeJS() {
     function setPlacementZoom(val) {
         placementZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(val * 10) / 10));
         if (pathElements.placementZoomLabel) {
-            pathElements.placementZoomLabel.textContent = `Zoom: ${placementZoom.toFixed(1)}`;
+            pathElements.placementZoomLabel.innerHTML = `<span data-i18n="multi.zoom">${window.i18n.t('multi.zoom')}</span>: ${placementZoom.toFixed(1)}`;
         }
     }
     setPlacementZoom(placementZoom);
@@ -1733,7 +1756,7 @@ function initPathThreeJS() {
             updateWaypointMarkers();
             updateWaypointsList();
             updatePathButtons();
-            addPathLog(`Added waypoint ${pathState.waypoints.length}: Az=${waypoint.azimuth}°, El=${waypoint.elevation}°`, 'info');
+            addPathLog(window.i18n.t('log.addedWaypoint', { num: pathState.waypoints.length, azimuth: waypoint.azimuth, elevation: waypoint.elevation }), 'info');
         }
     }
     
@@ -1848,7 +1871,7 @@ function updateWaypointsList() {
     count.textContent = `(${pathState.waypoints.length}/${CONFIG.MAX_WAYPOINTS})`;
     
     if (pathState.waypoints.length === 0) {
-        list.innerHTML = `<div class="waypoints-empty"><p>Click on the sphere above to add camera positions</p></div>`;
+        list.innerHTML = `<div class="waypoints-empty"><p data-i18n="multi.clickToAdd">${window.i18n.t('multi.clickToAdd')}</p></div>`;
         return;
     }
     
@@ -1877,7 +1900,7 @@ function updateWaypointsList() {
             if (pathThreeScene) pathThreeScene.updateWaypoints();
             updateWaypointsList();
             updatePathButtons();
-            addPathLog(`Removed waypoint ${index + 1}`, 'info');
+            addPathLog(window.i18n.t('log.removedWaypoint', { num: index + 1 }), 'info');
         });
     });
 }
@@ -1979,7 +2002,7 @@ async function generateKeyframes() {
     const apiKey = elements.apiKey.value.trim();
     addPathLog(`Generate keyframes clicked. waypoints=${pathState.waypoints.length}, hasApiKey=${apiKey.length > 0}, hasPathImage=${!!(pathState.imageUrl || pathState.uploadedImage)}`, 'info');
     if (!apiKey) {
-        showPathStatus('Please enter your fal.ai API key', 'error');
+        showPathStatus(window.i18n.t('status.enterApiKey'), 'error');
         return;
     }
 
@@ -1989,25 +2012,25 @@ async function generateKeyframes() {
     }
     
     if (pathState.waypoints.length < CONFIG.MIN_WAYPOINTS) {
-        showPathStatus(`Add at least ${CONFIG.MIN_WAYPOINTS} waypoints`, 'error');
+        showPathStatus(window.i18n.t('status.addWaypoints', { min: CONFIG.MIN_WAYPOINTS }), 'error');
         return;
     }
 
     if (!pathState.imageUrl && !pathState.uploadedImage) {
-        showPathStatus('Please upload an image (in Camera Path tab) or switch from Single Angle with an image loaded', 'error');
-        addPathLog('Keyframe generation blocked: no image found for Camera Path', 'error');
+        showPathStatus(window.i18n.t('status.uploadImagePath'), 'error');
+        addPathLog(window.i18n.t('log.error', {message: 'No image for Camera Path'}), 'error');
         return;
     }
     
     pathState.isGeneratingKeyframes = true;
     updatePathButtons();
 
-    showPathStatus('Generating keyframes...', 'info');
+    showPathStatus(window.i18n.t('status.generatingKeyframes'), 'info');
     // Render placeholder slots immediately (one per waypoint)
     updateGallery();
     
     pathElements.generateKeyframesBtn.classList.add('generating');
-    pathElements.generateKeyframesBtn.querySelector('.btn-text').textContent = 'Generating...';
+    pathElements.generateKeyframesBtn.querySelector('.btn-text').textContent = window.i18n.t('single.generating');
     pathElements.generateKeyframesBtn.querySelector('.btn-loader').classList.remove('hidden');
     pathElements.keyframeProgress.classList.remove('hidden');
     pathElements.keyframeProgressFill.style.width = '0%';
@@ -2020,12 +2043,12 @@ async function generateKeyframes() {
         if (pathState.imageUrl) {
             imageUrl = pathState.imageUrl;
         } else {
-            addPathLog('Uploading source image...', 'request');
+            addPathLog(window.i18n.t('log.uploadingToStorage'), 'request');
             imageUrl = await fal.storage.upload(pathState.uploadedImage);
             addPathLog(`Uploaded: ${imageUrl}`, 'response');
         }
     } catch (err) {
-        showPathStatus('Failed to upload image', 'error');
+        showPathStatus(window.i18n.t('error.failedToUploadImage'), 'error');
         addPathLog(`Upload error: ${formatError(err)}`, 'error');
         pathState.isGeneratingKeyframes = false;
         resetKeyframeUI();
@@ -2080,15 +2103,15 @@ async function generateKeyframes() {
     updatePathButtons();
     
     if (completed === total) {
-        showPathStatus('All keyframes generated!', 'success');
+        showPathStatus(window.i18n.t('status.allKeyframesGenerated'), 'success');
     } else {
-        showPathStatus(`Generated ${completed}/${total} keyframes`, 'warn');
+        showPathStatus(window.i18n.t('status.keyframesGenerated', { completed, total }), 'warn');
     }
 }
 
 function resetKeyframeUI() {
     pathElements.generateKeyframesBtn.classList.remove('generating');
-    pathElements.generateKeyframesBtn.querySelector('.btn-text').textContent = 'Generate All Keyframes';
+    pathElements.generateKeyframesBtn.querySelector('.btn-text').textContent = window.i18n.t('multi.generateKeyframes');
     pathElements.generateKeyframesBtn.querySelector('.btn-loader').classList.add('hidden');
 }
 
@@ -2116,9 +2139,9 @@ function updateGallery() {
             }
             return `
                 <div class="gallery-item">
-                    <img src="${wp.generatedImageUrl}" alt="Keyframe ${i + 1}">
+                    <img src="${wp.generatedImageUrl}" alt="${window.i18n.t('gallery.keyframe')} ${i + 1}">
                     <div class="gallery-item-overlay">
-                        <span class="gallery-item-label">Keyframe ${i + 1}</span>
+                        <span class="gallery-item-label">${window.i18n.t('gallery.keyframe')} ${i + 1}</span>
                         <button class="gallery-item-download" data-url="${wp.generatedImageUrl}" data-index="${i}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -2163,7 +2186,7 @@ function updateGallery() {
                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                     <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
                 </svg>
-                <p>Generated keyframes will appear here</p>
+                <p data-i18n="multi.keyframesWillAppear">${window.i18n.t('multi.keyframesWillAppear')}</p>
             </div>
         `;
         return;
@@ -2175,8 +2198,8 @@ async function downloadAllAsZip() {
     const generated = pathState.waypoints.filter(wp => wp.generatedImageUrl);
     if (generated.length === 0) return;
     
-    addPathLog('Creating ZIP file...', 'info');
-    showPathStatus('Preparing download...', 'info');
+    addPathLog(window.i18n.t('log.creatingZip'), 'info');
+    showPathStatus(window.i18n.t('status.loadingImage'), 'info');
     
     try {
         const zip = new JSZip();
@@ -2200,10 +2223,10 @@ async function downloadAllAsZip() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        showPathStatus('Downloaded!', 'success');
+        showPathStatus(window.i18n.t('status.downloaded'), 'success');
         addPathLog('ZIP download complete', 'info');
     } catch (err) {
-        showPathStatus('Download failed', 'error');
+        showPathStatus(window.i18n.t('status.downloadFailed'), 'error');
         addPathLog(`ZIP error: ${formatError(err)}`, 'error');
     }
 }
@@ -2227,7 +2250,7 @@ const easings = {
 async function generateTransitionVideo() {
     const keyframes = pathState.waypoints.filter(wp => wp.generatedImageUrl);
     if (keyframes.length < 2) {
-        showPathStatus('Need at least 2 generated keyframes', 'error');
+        showPathStatus(window.i18n.t('error.need2Keyframes'), 'error');
         return;
     }
     
@@ -2235,7 +2258,7 @@ async function generateTransitionVideo() {
     updatePathButtons();
     
     pathElements.generateVideoBtn.classList.add('generating');
-    pathElements.generateVideoBtn.querySelector('.btn-text').textContent = 'Rendering...';
+    pathElements.generateVideoBtn.querySelector('.btn-text').textContent = window.i18n.t('motion.rendering');
     pathElements.generateVideoBtn.querySelector('.btn-loader').classList.remove('hidden');
     pathElements.videoProgress.classList.remove('hidden');
     
@@ -2331,7 +2354,7 @@ async function generateTransitionVideo() {
             // Update progress UI
             const overallProgress = (currentFrame / totalFrames) * 100;
             pathElements.videoProgressFill.style.width = `${overallProgress}%`;
-            pathElements.videoProgressText.textContent = `Frame ${currentFrame}/${totalFrames}`;
+            pathElements.videoProgressText.textContent = window.i18n.t('progress.frame', {current: currentFrame, total: totalFrames});
             
             // Clear canvas
             ctx.fillStyle = '#000';
@@ -2422,16 +2445,16 @@ async function generateTransitionVideo() {
     pathElements.downloadVideoBtn.classList.remove('hidden');
     
     pathElements.videoProgressFill.style.width = '100%';
-    pathElements.videoProgressText.textContent = 'Complete!';
+    pathElements.videoProgressText.textContent = window.i18n.t('status.videoCreated');
     
     pathState.isGeneratingVideos = false;
     pathElements.generateVideoBtn.classList.remove('generating');
-    pathElements.generateVideoBtn.querySelector('.btn-text').textContent = 'Create Video';
+    pathElements.generateVideoBtn.querySelector('.btn-text').textContent = window.i18n.t('motion.createBtn');
     pathElements.generateVideoBtn.querySelector('.btn-loader').classList.add('hidden');
     updatePathButtons();
     
-    showPathStatus('Video created!', 'success');
-    addPathLog('Video rendering complete', 'response');
+    showPathStatus(window.i18n.t('status.videoCreated'), 'success');
+    addPathLog(window.i18n.t('log.videoComplete'), 'response');
 }
 
 // Helper: Draw image with zoom and offset
@@ -2459,13 +2482,13 @@ function drawImageZoomed(ctx, img, canvasW, canvasH, zoom, offsetX, offsetY) {
 async function generateAIVideo() {
     const apiKey = elements.apiKey.value.trim();
     if (!apiKey) {
-        showPathStatus('Please enter your fal.ai API key', 'error');
+        showPathStatus(window.i18n.t('status.enterApiKey'), 'error');
         return;
     }
     
     const keyframes = pathState.waypoints.filter(wp => wp.generatedImageUrl);
     if (keyframes.length < 2) {
-        showPathStatus('Need at least 2 generated keyframes', 'error');
+        showPathStatus(window.i18n.t('error.need2Keyframes'), 'error');
         return;
     }
     
@@ -2474,7 +2497,7 @@ async function generateAIVideo() {
     updatePathButtons();
     
     pathElements.generateVideoBtn.classList.add('generating');
-    pathElements.generateVideoBtn.querySelector('.btn-text').textContent = 'Generating segments...';
+    pathElements.generateVideoBtn.querySelector('.btn-text').textContent = window.i18n.t('status.generatingKeyframes');
     pathElements.generateVideoBtn.querySelector('.btn-loader').classList.remove('hidden');
     pathElements.videoProgress.classList.remove('hidden');
     
@@ -2507,7 +2530,7 @@ async function generateAIVideo() {
         segmentUrls = cachedEntry.segmentUrls.slice(0);
         addPathLog(`Cache hit: reusing ${segmentUrls.length} Seedance segments (no model calls).`, 'info');
         pathElements.videoProgressFill.style.width = '20%';
-        pathElements.videoProgressText.textContent = 'Using cached segments...';
+        pathElements.videoProgressText.textContent = window.i18n.t('log.cacheHit', {count: segmentUrls.length});
     } else {
         // Generate all Seedance segments
         for (let i = 0; i < totalSegments; i++) {
@@ -2515,7 +2538,7 @@ async function generateAIVideo() {
             const endFrame = keyframes[(i + 1) % keyframes.length];
             
             pathElements.videoProgressFill.style.width = `${((i + 0.5) / totalSegments) * 70}%`;
-            pathElements.videoProgressText.textContent = `Segment ${i + 1}/${totalSegments}`;
+            pathElements.videoProgressText.textContent = window.i18n.t('progress.segment', {current: i + 1, total: totalSegments});
             
             const endLabel = (i + 1) < keyframes.length ? (i + 2) : 1;
             addPathLog(`Segment ${i + 1}: Frame ${i + 1} (Az=${startFrame.azimuth}°) → Frame ${endLabel} (Az=${endFrame.azimuth}°)`, 'request');
@@ -2534,9 +2557,9 @@ async function generateAIVideo() {
                     logs: false,
                     onQueueUpdate: (update) => {
                         if (update.status === 'IN_QUEUE') {
-                            pathElements.videoProgressText.textContent = `Segment ${i + 1}/${totalSegments} (queued)`;
+                            pathElements.videoProgressText.textContent = window.i18n.t('progress.queued', {current: i + 1, total: totalSegments});
                         } else if (update.status === 'IN_PROGRESS') {
-                            pathElements.videoProgressText.textContent = `Segment ${i + 1}/${totalSegments} (rendering)`;
+                            pathElements.videoProgressText.textContent = window.i18n.t('progress.rendering', {current: i + 1, total: totalSegments});
                         }
                     }
                 });
@@ -2563,14 +2586,14 @@ async function generateAIVideo() {
     }
     
     if (segmentUrls.length === 0) {
-        showPathStatus('No segments generated', 'error');
+        showPathStatus(window.i18n.t('error.noSegmentsGenerated'), 'error');
         resetVideoUI();
         return;
     }
     
     // Step 2: Download, speed up 4x, and stitch
     pathElements.videoProgressFill.style.width = '75%';
-    pathElements.videoProgressText.textContent = 'Downloading segments...';
+    pathElements.videoProgressText.textContent = window.i18n.t('progress.downloadingSegments');
     addPathLog(`Downloading ${segmentUrls.length} segments for stitching...`, 'info');
     
     try {
@@ -2583,7 +2606,7 @@ async function generateAIVideo() {
             addPathLog(`Downloaded segment ${i + 1}`, 'info');
         }
         
-        pathElements.videoProgressText.textContent = 'Stitching with 4x speedup...';
+        pathElements.videoProgressText.textContent = window.i18n.t('progress.stitching');
         pathElements.videoProgressFill.style.width = '85%';
         
         // Stitch with speedup (playback-rate stitching to avoid stretched durations)
@@ -2598,15 +2621,15 @@ async function generateAIVideo() {
         pathElements.downloadVideoBtn.classList.remove('hidden');
         
         pathElements.videoProgressFill.style.width = '100%';
-        pathElements.videoProgressText.textContent = 'Complete!';
+        pathElements.videoProgressText.textContent = window.i18n.t('status.videoCreated');
         
         const finalDuration = segmentUrls.length * pairSeconds;
-        showPathStatus(`Done! ${finalDuration} second video`, 'success');
+        showPathStatus(window.i18n.t('status.videoDone', { duration: finalDuration }), 'success');
         addPathLog(`Final video: ~${finalDuration} seconds (${segmentUrls.length} segments × ${pairSeconds}s)`, 'response');
-        
+
     } catch (err) {
         addPathLog(`Stitch error: ${formatError(err)}`, 'error');
-        showPathStatus('Stitching failed - showing segments', 'warn');
+        showPathStatus(window.i18n.t('status.stitchFailed'), 'warn');
         
         // Fallback: show first segment
         if (segmentUrls.length > 0) {
@@ -2624,7 +2647,7 @@ async function generateAIVideo() {
 function resetVideoUI() {
     pathState.isGeneratingVideos = false;
     pathElements.generateVideoBtn.classList.remove('generating');
-    pathElements.generateVideoBtn.querySelector('.btn-text').textContent = 'Create Video';
+    pathElements.generateVideoBtn.querySelector('.btn-text').textContent = window.i18n.t('motion.createBtn');
     pathElements.generateVideoBtn.querySelector('.btn-loader').classList.add('hidden');
     updatePathButtons();
 }
@@ -2789,7 +2812,7 @@ async function downloadVideo() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        addPathLog('Video downloaded', 'info');
+        addPathLog(window.i18n.t('log.videoDownloaded'), 'info');
         return;
     }
     
@@ -2807,7 +2830,7 @@ async function downloadVideo() {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            addPathLog('Video downloaded', 'info');
+            addPathLog(window.i18n.t('log.videoDownloaded'), 'info');
         } catch (err) {
             // Fallback: open in new tab
             window.open(pathState.generatedVideoUrl, '_blank');
@@ -2862,7 +2885,7 @@ function setupPathEventListeners() {
         updateWaypointsList();
         updatePathButtons();
         updateGallery();
-        addPathLog('Cleared all waypoints', 'info');
+        addPathLog(window.i18n.t('log.clearedWaypoints'), 'info');
     });
     
     // Undo waypoint
@@ -2872,7 +2895,7 @@ function setupPathEventListeners() {
             if (pathThreeScene) pathThreeScene.updateWaypoints();
             updateWaypointsList();
             updatePathButtons();
-            addPathLog('Removed last waypoint', 'info');
+            addPathLog(window.i18n.t('log.removedLastWaypoint'), 'info');
         }
     });
     
@@ -2896,7 +2919,7 @@ function setupPathEventListeners() {
         e.preventDefault();
         e.stopPropagation();
         if (pathElements.logsContainer) {
-            pathElements.logsContainer.innerHTML = '<div class="log-entry info">Logs cleared.</div>';
+            pathElements.logsContainer.innerHTML = `<div class="log-entry info" data-i18n="log.logsCleared">${window.i18n.t('log.logsCleared')}</div>`;
         }
     });
     
@@ -3003,11 +3026,3 @@ function init() {
         localStorage.setItem('fal_api_key', elements.apiKey.value);
     });
 }
-
-// Start when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
-

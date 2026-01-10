@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qwen Multi-Angle Camera Control</title>
+    <title data-i18n="header.title">Qwen Multi-Angle Camera Control</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -15,38 +15,45 @@
         <header class="header">
             <div class="logo">
                 <span class="logo-icon">⬡</span>
-                <span class="logo-text">Qwen Multi-Angle</span>
+                <span class="logo-text" data-i18n="header.title">Qwen Multi-Angle</span>
             </div>
             <div class="api-key-section">
-                <label for="api-key" class="api-label">fal.ai API Key <a href="https://fal.ai/dashboard/keys" target="_blank" class="get-key-link">(Get key)</a></label>
+                <label for="api-key" class="api-label"><span data-i18n="header.apiKey">fal.ai API Key</span> <a href="https://fal.ai/dashboard/keys" target="_blank" class="get-key-link" data-i18n="header.getKey">(Get key)</a></label>
                 <div class="api-input-wrapper">
-                    <input 
-                        type="password" 
-                        id="api-key" 
-                        placeholder="Enter your API key..." 
+                    <input
+                        type="password"
+                        id="api-key"
+                        data-i18n-placeholder="header.apiKeyPlaceholder"
                         autocomplete="off"
                     >
-                    <button id="toggle-key" class="toggle-key-btn" title="Show/Hide">
+                    <button id="toggle-key" class="toggle-key-btn" title="Show/Hide" data-i18n-title="header.showHide">
                         <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                             <circle cx="12" cy="12" r="3"/>
                         </svg>
                     </button>
                 </div>
-                <span class="api-key-hint">🔒 Stored only in your browser's local storage</span>
+                <span class="api-key-hint" data-i18n="header.apiKeyHint">🔒 Stored only in your browser's local storage</span>
+            </div>
+            <div class="lang-selector-wrapper">
+                <label for="lang-selector">🌐</label>
+                <select id="lang-selector" class="lang-selector">
+                    <option value="en">English</option>
+                    <option value="zh">简体中文</option>
+                </select>
             </div>
         </header>
 
         <!-- Tab Navigation -->
         <nav class="tab-nav">
-            <button class="tab-btn active" data-tab="single-image">
+            <button class="tab-btn active" data-tab="single-image" data-i18n="tabs.singleImage">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
                     <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
                 </svg>
                 Single-image
             </button>
-            <button class="tab-btn" data-tab="multi-image">
+            <button class="tab-btn" data-tab="multi-image" data-i18n="tabs.multiImage">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 17l6-6 4 4 8-8"/>
                     <circle cx="7" cy="13" r="2"/>
@@ -55,7 +62,7 @@
                 </svg>
                 Multi-image
             </button>
-            <button class="tab-btn" data-tab="camera-motion">
+            <button class="tab-btn" data-tab="camera-motion" data-i18n="tabs.cameraMotion">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 7l-9 5-9-5 9-5 9 5z"/>
                     <path d="M3 7v10l9 5 9-5V7"/>
@@ -73,7 +80,7 @@
                     <section class="left-panel">
                         <!-- Image Upload -->
                         <div class="panel-card upload-card">
-                            <h3 class="card-title">Input Image</h3>
+                            <h3 class="card-title" data-i18n="single.inputImage">Input Image</h3>
                             <div class="upload-zone" id="upload-zone">
                                 <input type="file" id="image-input" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" hidden>
                                 <div class="upload-placeholder" id="upload-placeholder">
@@ -82,34 +89,34 @@
                                         <polyline points="17 8 12 3 7 8"/>
                                         <line x1="12" y1="3" x2="12" y2="15"/>
                                     </svg>
-                                    <p>Drop image here or click to upload</p>
+                                    <p data-i18n="single.dropImage">Drop image here or click to upload</p>
                                 </div>
                                 <img id="preview-image" class="preview-image hidden" alt="Preview">
                                 <button id="clear-image" class="clear-btn hidden">×</button>
                             </div>
                             <div class="url-input-section">
-                                <div class="url-divider"><span>or paste URL</span></div>
+                                <div class="url-divider"><span data-i18n="single.orPasteUrl">or paste URL</span></div>
                                 <div class="url-input-wrapper">
-                                    <input type="text" id="image-url-input" placeholder="https://example.com/image.jpg" autocomplete="off">
-                                    <button id="load-url-btn" class="load-url-btn">Load</button>
+                                    <input type="text" id="image-url-input" data-i18n-placeholder="single.urlPlaceholder" placeholder="https://example.com/image.jpg" autocomplete="off">
+                                    <button id="load-url-btn" class="load-url-btn" data-i18n="single.loadBtn">Load</button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 3D Camera Control -->
                         <div class="panel-card camera-card">
-                            <h3 class="card-title">3D Camera Control</h3>
-                            <p class="card-subtitle">Drag handles: <span class="handle-azimuth">●</span> Azimuth <span class="handle-elevation">●</span> Elevation <span class="handle-distance">●</span> Distance</p>
+                            <h3 class="card-title" data-i18n="single.cameraControl">3D Camera Control</h3>
+                            <p class="card-subtitle"><span data-i18n="single.dragHandles">Drag handles:</span> <span class="handle-azimuth">●</span> <span data-i18n="single.azimuth">Azimuth</span> <span class="handle-elevation">●</span> <span data-i18n="single.elevation">Elevation</span> <span class="handle-distance">●</span> <span data-i18n="single.distance">Distance</span></p>
                             <div id="threejs-container" class="threejs-container"></div>
                         </div>
 
                         <!-- Sliders -->
                         <div class="panel-card sliders-card">
-                            <h3 class="card-title">Manual Controls</h3>
-                            
+                            <h3 class="card-title" data-i18n="single.manualControls">Manual Controls</h3>
+
                             <div class="slider-group">
                                 <div class="slider-header">
-                                    <label>Azimuth (Horizontal)</label>
+                                    <label data-i18n="single.azimuthHorizontal">Azimuth (Horizontal)</label>
                                     <span id="azimuth-value" class="slider-value">0°</span>
                                 </div>
                                 <input type="range" id="azimuth-slider" min="0" max="360" step="1" value="0">
@@ -124,34 +131,34 @@
 
                             <div class="slider-group">
                                 <div class="slider-header">
-                                    <label>Elevation (Vertical Angle)</label>
+                                    <label data-i18n="single.elevationVertical">Elevation (Vertical Angle)</label>
                                     <span id="elevation-value" class="slider-value">0°</span>
                                 </div>
                                 <input type="range" id="elevation-slider" min="-30" max="90" step="1" value="0">
                                 <div class="slider-labels">
-                                    <span>-30° (Low)</span>
-                                    <span>0° (Eye)</span>
-                                    <span>90° (Bird)</span>
+                                    <span data-i18n="slider.low">-30° (Low)</span>
+                                    <span data-i18n="slider.eye">0° (Eye)</span>
+                                    <span data-i18n="slider.bird">90° (Bird)</span>
                                 </div>
                             </div>
 
                             <div class="slider-group">
                                 <div class="slider-header">
-                                    <label>Zoom (Distance)</label>
+                                    <label data-i18n="single.zoomDistance">Zoom (Distance)</label>
                                     <span id="distance-value" class="slider-value">5</span>
                                 </div>
                                 <input type="range" id="distance-slider" min="0" max="10" step="0.1" value="5">
                                 <div class="slider-labels">
-                                    <span>0 (Wide)</span>
-                                    <span>5 (Medium)</span>
-                                    <span>10 (Close)</span>
+                                    <span data-i18n="slider.wide">0 (Wide)</span>
+                                    <span data-i18n="slider.medium">5 (Medium)</span>
+                                    <span data-i18n="slider.close">10 (Close)</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- API Parameters Preview -->
                         <div class="panel-card prompt-card">
-                            <h3 class="card-title">API Parameters</h3>
+                            <h3 class="card-title" data-i18n="single.apiParameters">API Parameters</h3>
                             <div class="prompt-display" id="prompt-display">
                                 Loading...
                             </div>
@@ -159,7 +166,7 @@
 
                         <!-- Generate Button -->
                         <button id="generate-btn" class="generate-btn" disabled>
-                            <span class="btn-text">Generate</span>
+                            <span class="btn-text" data-i18n="single.generate">Generate</span>
                             <span class="btn-loader hidden">
                                 <svg class="spinner" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="31.4" stroke-dashoffset="10"/>
@@ -171,7 +178,7 @@
                     <!-- Right Panel: Output -->
                     <section class="right-panel">
                         <div class="panel-card output-card">
-                            <h3 class="card-title">Output</h3>
+                            <h3 class="card-title" data-i18n="single.output">Output</h3>
                             <div class="output-container" id="output-container">
                                 <div class="output-placeholder" id="output-placeholder">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -179,7 +186,7 @@
                                         <circle cx="8.5" cy="8.5" r="1.5"/>
                                         <polyline points="21 15 16 10 5 21"/>
                                     </svg>
-                                    <p>Generated image will appear here</p>
+                                    <p data-i18n="single.generatedImageWillAppear">Generated image will appear here</p>
                                 </div>
                                 <img id="output-image" class="output-image hidden" alt="Output">
                             </div>
@@ -189,7 +196,7 @@
                                     <polyline points="7 10 12 15 17 10"/>
                                     <line x1="12" y1="15" x2="12" y2="3"/>
                                 </svg>
-                                Download
+                                <span data-i18n="single.download">Download</span>
                             </button>
                         </div>
 
@@ -199,11 +206,11 @@
                         <!-- Logs Panel -->
                         <details class="logs-panel" open>
                             <summary class="logs-header">
-                                <span>🔧 Debug Logs</span>
-                                <button id="clear-logs" class="clear-logs-btn">Clear</button>
+                                <span data-i18n="single.debugLogs">🔧 Debug Logs</span>
+                                <button id="clear-logs" class="clear-logs-btn" data-i18n="single.clear">Clear</button>
                             </summary>
                             <div id="logs-container" class="logs-container">
-                                <div class="log-entry info">Ready. Waiting for API call...</div>
+                                <div class="log-entry info" data-i18n="single.ready">Ready. Waiting for API call...</div>
                             </div>
                         </details>
                     </section>
@@ -217,7 +224,7 @@
                     <section class="left-panel">
                         <!-- Image Upload for Path -->
                         <div class="panel-card upload-card">
-                            <h3 class="card-title">Input Image</h3>
+                            <h3 class="card-title" data-i18n="multi.inputImage">Input Image</h3>
                             <div class="upload-zone" id="path-upload-zone">
                                 <input type="file" id="path-image-input" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" hidden>
                                 <div class="upload-placeholder" id="path-upload-placeholder">
@@ -226,54 +233,54 @@
                                         <polyline points="17 8 12 3 7 8"/>
                                         <line x1="12" y1="3" x2="12" y2="15"/>
                                     </svg>
-                                    <p>Drop image here or click to upload</p>
+                                    <p data-i18n="multi.dropImage">Drop image here or click to upload</p>
                                 </div>
                                 <img id="path-preview-image" class="preview-image hidden" alt="Preview">
                                 <button id="path-clear-image" class="clear-btn hidden">×</button>
                             </div>
                             <div class="url-input-section">
-                                <div class="url-divider"><span>or paste URL</span></div>
+                                <div class="url-divider"><span data-i18n="multi.orPasteUrl">or paste URL</span></div>
                                 <div class="url-input-wrapper">
-                                    <input type="text" id="path-image-url-input" placeholder="https://example.com/image.jpg" autocomplete="off">
-                                    <button id="path-load-url-btn" class="load-url-btn">Load</button>
+                                    <input type="text" id="path-image-url-input" data-i18n-placeholder="multi.urlPlaceholder" placeholder="https://example.com/image.jpg" autocomplete="off">
+                                    <button id="path-load-url-btn" class="load-url-btn" data-i18n="multi.loadBtn">Load</button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 3D Path Drawing -->
                         <div class="panel-card camera-card">
-                            <h3 class="card-title">3D Camera Path</h3>
-                            <p class="card-subtitle">Hover sphere to preview, scroll to set zoom, click to add waypoint (2-4 points). <span id="placement-zoom-label" style="margin-left:8px; color: var(--accent); font-family: var(--font-mono);">Zoom: 5.0</span></p>
+                            <h3 class="card-title" data-i18n="multi.cameraPath">3D Camera Path</h3>
+                            <p class="card-subtitle"><span data-i18n="multi.pathInstructions">Hover sphere to preview, scroll to set zoom, click to add waypoint (2-4 points).</span> <span id="placement-zoom-label" style="margin-left:8px; color: var(--accent); font-family: var(--font-mono);"><span data-i18n="multi.zoom">Zoom</span>: 5.0</span></p>
                             <div id="path-threejs-container" class="threejs-container"></div>
                             <div class="path-controls">
                                 <button id="clear-waypoints-btn" class="secondary-btn">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
                                     </svg>
-                                    Clear All
+                                    <span data-i18n="multi.clearAll">Clear All</span>
                                 </button>
                                 <button id="undo-waypoint-btn" class="secondary-btn">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4"/>
                                     </svg>
-                                    Undo
+                                    <span data-i18n="multi.undo">Undo</span>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Waypoints List -->
                         <div class="panel-card waypoints-card">
-                            <h3 class="card-title">Waypoints <span id="waypoint-count" class="waypoint-count">(0/4)</span></h3>
+                            <h3 class="card-title"><span data-i18n="multi.waypoints">Waypoints</span> <span id="waypoint-count" class="waypoint-count">(0/4)</span></h3>
                             <div id="waypoints-list" class="waypoints-list">
                                 <div class="waypoints-empty">
-                                    <p>Click on the sphere above to add camera positions</p>
+                                    <p data-i18n="multi.clickToAdd">Click on the sphere above to add camera positions</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Generate Keyframes Button -->
                         <button id="generate-keyframes-btn" class="generate-btn" disabled>
-                            <span class="btn-text">Generate All Keyframes</span>
+                            <span class="btn-text" data-i18n="multi.generateKeyframes">Generate All Keyframes</span>
                             <span class="btn-loader hidden">
                                 <svg class="spinner" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="31.4" stroke-dashoffset="10"/>
@@ -292,14 +299,14 @@
                     <section class="middle-panel">
                         <div class="panel-card gallery-card">
                             <div class="gallery-header">
-                                <h3 class="card-title">Generated Keyframes</h3>
+                                <h3 class="card-title" data-i18n="multi.generatedKeyframes">Generated Keyframes</h3>
                                 <button id="download-all-btn" class="secondary-btn hidden">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
                                         <polyline points="7 10 12 15 17 10"/>
                                         <line x1="12" y1="15" x2="12" y2="3"/>
                                     </svg>
-                                    Download All (ZIP)
+                                    <span data-i18n="multi.downloadAllZip">Download All (ZIP)</span>
                                 </button>
                             </div>
                             <div id="keyframes-gallery" class="keyframes-gallery">
@@ -310,7 +317,7 @@
                                         <rect x="14" y="14" width="7" height="7"/>
                                         <rect x="3" y="14" width="7" height="7"/>
                                     </svg>
-                                    <p>Generated keyframes will appear here</p>
+                                    <p data-i18n="multi.keyframesWillAppear">Generated keyframes will appear here</p>
                                 </div>
                             </div>
                         </div>
@@ -324,11 +331,11 @@
                         <!-- Path Logs Panel -->
                         <details class="logs-panel" open>
                             <summary class="logs-header">
-                                <span>🔧 Debug Logs</span>
-                                <button id="path-clear-logs" class="clear-logs-btn">Clear</button>
+                                <span data-i18n="multi.debugLogs">🔧 Debug Logs</span>
+                                <button id="path-clear-logs" class="clear-logs-btn" data-i18n="multi.clear">Clear</button>
                             </summary>
                             <div id="path-logs-container" class="logs-container">
-                                <div class="log-entry info">Camera Path mode ready. Add waypoints to begin.</div>
+                                <div class="log-entry info" data-i18n="multi.pathReady">Camera Path mode ready. Add waypoints to begin.</div>
                             </div>
                         </details>
                     </section>
@@ -340,77 +347,77 @@
                 <main class="main-content">
                     <section class="left-panel">
                         <div class="panel-card">
-                            <h3 class="card-title">Camera Motion</h3>
-                            <p class="card-subtitle">Generate video from the keyframes you created in Multi-image.</p>
+                            <h3 class="card-title" data-i18n="motion.title">Camera Motion</h3>
+                            <p class="card-subtitle" data-i18n="motion.subtitle">Generate video from the keyframes you created in Multi-image.</p>
                             <div class="ai-info">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="10"/>
                                     <path d="M12 16v-4M12 8h.01"/>
                                 </svg>
-                                <span>Tip: Generate keyframes first in Multi-image, then come here to create camera motion video.</span>
+                                <span data-i18n="motion.tip">Tip: Generate keyframes first in Multi-image, then come here to create camera motion video.</span>
                             </div>
                         </div>
                     </section>
                     <section class="right-panel">
                         <div class="panel-card video-card">
-                            <h3 class="card-title">Create Camera Motion Video</h3>
-                            <p class="card-subtitle">Quick Stitch is instant. AI Video uses Seedance (queued).</p>
+                            <h3 class="card-title" data-i18n="motion.createVideo">Create Camera Motion Video</h3>
+                            <p class="card-subtitle" data-i18n="motion.modeSubtitle">Quick Stitch is instant. AI Video uses Seedance (queued).</p>
                             <div class="video-mode-toggle">
                                 <button class="mode-btn active" data-mode="quick">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polygon points="5 3 19 12 5 21 5 3"/>
                                     </svg>
-                                    Quick Stitch
-                                    <span class="mode-badge">Instant</span>
+                                    <span data-i18n="motion.quickStitch">Quick Stitch</span>
+                                    <span class="mode-badge" data-i18n="motion.instant">Instant</span>
                                 </button>
                                 <button class="mode-btn" data-mode="ai">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M12 2a4 4 0 014 4v1a4 4 0 01-8 0V6a4 4 0 014-4z"/>
                                         <path d="M12 14c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z"/>
                                     </svg>
-                                    AI Video
-                                    <span class="mode-badge ai">Seedance</span>
+                                    <span data-i18n="motion.aiVideo">AI Video</span>
+                                    <span class="mode-badge ai" data-i18n="motion.seedance">Seedance</span>
                                 </button>
                             </div>
 
                             <div class="video-settings" id="quick-settings">
                                 <div class="setting-row">
                                     <div class="setting-group">
-                                        <label for="video-duration">Total Duration</label>
+                                        <label for="video-duration" data-i18n="motion.totalDuration">Total Duration</label>
                                         <select id="video-duration">
-                                            <option value="3">3 seconds</option>
-                                            <option value="4">4 seconds</option>
-                                            <option value="5" selected>5 seconds</option>
-                                            <option value="6">6 seconds</option>
-                                            <option value="8">8 seconds</option>
+                                            <option value="3" data-i18n="duration.3s">3 seconds</option>
+                                            <option value="4" data-i18n="duration.4s">4 seconds</option>
+                                            <option value="5" data-i18n="duration.5s" selected>5 seconds</option>
+                                            <option value="6" data-i18n="duration.6s">6 seconds</option>
+                                            <option value="8" data-i18n="duration.8s">8 seconds</option>
                                         </select>
                                     </div>
                                     <div class="setting-group">
-                                        <label for="transition-style">Transition Style</label>
+                                        <label for="transition-style" data-i18n="motion.transitionStyle">Transition Style</label>
                                         <select id="transition-style">
-                                            <option value="crane-zoom" selected>Crane Zoom</option>
-                                            <option value="smooth-pan">Smooth Pan</option>
-                                            <option value="whip-pan">Whip Pan</option>
-                                            <option value="dolly-zoom">Dolly Zoom</option>
+                                            <option value="crane-zoom" data-i18n="transition.craneZoom" selected>Crane Zoom</option>
+                                            <option value="smooth-pan" data-i18n="transition.smoothPan">Smooth Pan</option>
+                                            <option value="whip-pan" data-i18n="transition.whipPan">Whip Pan</option>
+                                            <option value="dolly-zoom" data-i18n="transition.dollyZoom">Dolly Zoom</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="setting-row">
                                     <div class="setting-group">
-                                        <label for="video-fps">Frame Rate</label>
+                                        <label for="video-fps" data-i18n="motion.frameRate">Frame Rate</label>
                                         <select id="video-fps">
-                                            <option value="24">24 fps (Cinematic)</option>
-                                            <option value="30" selected>30 fps</option>
-                                            <option value="60">60 fps (Smooth)</option>
+                                            <option value="24" data-i18n="fps.24">24 fps (Cinematic)</option>
+                                            <option value="30" data-i18n="fps.30" selected>30 fps</option>
+                                            <option value="60" data-i18n="fps.60">60 fps (Smooth)</option>
                                         </select>
                                     </div>
                                     <div class="setting-group">
-                                        <label for="ease-type">Easing</label>
+                                        <label for="ease-type" data-i18n="motion.easing">Easing</label>
                                         <select id="ease-type">
-                                            <option value="ease-in-out" selected>Ease In-Out</option>
-                                            <option value="ease-out">Ease Out</option>
-                                            <option value="linear">Linear</option>
-                                            <option value="bounce">Bounce</option>
+                                            <option value="ease-in-out" data-i18n="easing.easeInOut" selected>Ease In-Out</option>
+                                            <option value="ease-out" data-i18n="easing.easeOut">Ease Out</option>
+                                            <option value="linear" data-i18n="easing.linear">Linear</option>
+                                            <option value="bounce" data-i18n="easing.bounce">Bounce</option>
                                         </select>
                                     </div>
                                 </div>
@@ -418,34 +425,34 @@
 
                             <div class="video-settings hidden" id="ai-settings">
                                 <div class="setting-group">
-                                    <label for="ai-prompt">Motion Prompt</label>
+                                    <label for="ai-prompt" data-i18n="motion.motionPrompt">Motion Prompt</label>
                                     <textarea id="ai-prompt" rows="2">The camera very slowly and smoothly lowers on a boom. The subject moves barely moves, and is extremely deliberate and thoughtful in his movement.</textarea>
                                 </div>
                                 <div class="setting-group">
-                                    <label for="ai-resolution">Resolution</label>
+                                    <label for="ai-resolution" data-i18n="motion.resolution">Resolution</label>
                                     <select id="ai-resolution">
-                                        <option value="480p">480p (Faster)</option>
-                                        <option value="720p" selected>720p</option>
+                                        <option value="480p" data-i18n="resolution.480p">480p (Faster)</option>
+                                        <option value="720p" data-i18n="resolution.720p" selected>720p</option>
                                     </select>
                                 </div>
                                 <div class="setting-group">
-                                    <label for="ai-pair-seconds">Per-pair duration (after speedup)</label>
+                                    <label for="ai-pair-seconds" data-i18n="motion.perPairDuration">Per-pair duration (after speedup)</label>
                                     <select id="ai-pair-seconds">
-                                        <option value="1" selected>1 second (fast)</option>
-                                        <option value="2">2 seconds (slower)</option>
-                                        <option value="3">3 seconds (smooth)</option>
+                                        <option value="1" data-i18n="pairDuration.1s" selected>1 second (fast)</option>
+                                        <option value="2" data-i18n="pairDuration.2s">2 seconds (slower)</option>
+                                        <option value="3" data-i18n="pairDuration.3s">3 seconds (smooth)</option>
                                     </select>
                                 </div>
                                 <div class="setting-group">
                                     <label style="display:flex; align-items:center; gap:10px;">
                                         <input type="checkbox" id="ai-loop-path" style="transform: translateY(1px);">
-                                        Loop back to start (adds last → first)
+                                        <span data-i18n="motion.loopPath">Loop back to start (adds last → first)</span>
                                     </label>
                                 </div>
                             </div>
 
                             <button id="generate-video-btn" class="generate-btn video-btn" disabled>
-                                <span class="btn-text">Create Video</span>
+                                <span class="btn-text" data-i18n="motion.createBtn">Create Video</span>
                                 <span class="btn-loader hidden">
                                     <svg class="spinner" viewBox="0 0 24 24">
                                         <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="31.4" stroke-dashoffset="10"/>
@@ -456,19 +463,19 @@
                                 <div class="progress-bar">
                                     <div id="video-progress-fill" class="progress-fill"></div>
                                 </div>
-                                <span id="video-progress-text" class="progress-text">Rendering...</span>
+                                <span id="video-progress-text" class="progress-text" data-i18n="motion.rendering">Rendering...</span>
                             </div>
                         </div>
 
                         <div class="panel-card videos-card">
-                            <h3 class="card-title">Final Video</h3>
+                            <h3 class="card-title" data-i18n="motion.finalVideo">Final Video</h3>
                             <div id="video-preview-container" class="video-preview-container">
                                 <div class="videos-empty" id="video-empty-state">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                         <polygon points="23 7 16 12 23 17 23 7"/>
                                         <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                                     </svg>
-                                    <p>Generated video will appear here</p>
+                                    <p data-i18n="motion.videoWillAppear">Generated video will appear here</p>
                                 </div>
                                 <video id="final-video" class="final-video hidden" controls loop></video>
                                 <canvas id="video-canvas" class="hidden"></canvas>
@@ -479,7 +486,7 @@
                                     <polyline points="7 10 12 15 17 10"/>
                                     <line x1="12" y1="15" x2="12" y2="3"/>
                                 </svg>
-                                Download Video
+                                <span data-i18n="motion.downloadVideo">Download Video</span>
                             </button>
                         </div>
                     </section>
@@ -489,7 +496,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>Powered by <a href="https://fal.ai/models/fal-ai/qwen-image-edit-2511-multiple-angles/" target="_blank">fal.ai</a> | Video by <a href="https://fal.ai/models/fal-ai/bytedance/seedance/v1.5/pro/image-to-video/api" target="_blank">Seedance 1.5</a></p>
+            <p><span data-i18n="footer.poweredBy">Powered by</span> <a href="https://fal.ai/models/fal-ai/qwen-image-edit-2511-multiple-angles/" target="_blank">fal.ai</a> | <span data-i18n="footer.videoBy">Video by</span> <a href="https://fal.ai/models/fal-ai/bytedance/seedance/v1.5/pro/image-to-video/api" target="_blank">Seedance 1.5</a></p>
         </footer>
     </div>
 
@@ -497,6 +504,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- JSZip for downloading multiple files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- i18n -->
+    <script src="i18n.js"></script>
     <!-- fal.ai client -->
     <script type="module" src="app.js"></script>
 </body>
